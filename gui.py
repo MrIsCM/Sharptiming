@@ -7,7 +7,7 @@ from timerApp import TimeTracker
 
 class Sharptiming:
 	
-	def __init__(self, root, focus_duration=25, short_break=5, long_break=15, cycles_to_long_break=4):
+	def __init__(self, root, focus_duration=0.2, short_break=0.05, long_break=0.1, cycles_to_long_break=4):
 
 		# Root window and title
 		self.root = root
@@ -15,9 +15,9 @@ class Sharptiming:
 		
 		# Pomodoro variables
 		# Convert minutes to seconds
-		self.focus_duration = focus_duration * 60
-		self.short_break = short_break * 60
-		self.long_break = long_break * 60
+		self.focus_duration = int(focus_duration * 60)
+		self.short_break = int(short_break * 60)
+		self.long_break = int(long_break * 60)
 
 		self.is_focus_ = True
 		self.is_long_ = False
@@ -30,7 +30,8 @@ class Sharptiming:
 		self.time_focused = 0
 		self.time_break = 0
 
-		self.elapsed_time = 0
+		self.elapsed_focus_time = 0
+		self.elapsed_break_time = 0
 
 		self.is_running = False
 
@@ -48,7 +49,7 @@ class Sharptiming:
 		self.time_label = tk.Label(root, text=self.time_formating(self.focus_duration), font=("Times New Roman", 48))
 		self.time_label.pack()
 
-		self.timer_type = self.focus_timer()
+		self.focus_timer()
 
 		
 		# Buttons
@@ -72,6 +73,10 @@ class Sharptiming:
 		self.long_break_button = tk.Button(root, text="Long Break", command=self.long_break_timer)
 		self.long_break_button.pack(side=tk.LEFT, padx=40)
 
+		# Stats button
+		self.stats_button = tk.Button(root, text="Stats", command=self.show_stats)
+		self.stats_button.pack(side=tk.LEFT, padx=40)
+
 
 	def time_formating(self, time_seconds, show_hours=False):
 		mins, secs = divmod(time_seconds, 60)
@@ -88,6 +93,19 @@ class Sharptiming:
 	def stop_timer(self):
 		self.is_running = False
 		print("Timer stopped.")
+
+
+	def show_stats(self):
+		self.is_running = False
+		self.time_focused += self.elapsed_focus_time
+		self.time_break += self.elapsed_break_time
+		
+		ft_message = f"Time focused: {self.time_formating(self.time_focused, show_hours=True)}\n"
+		bt_message = f"Time on break: {self.time_formating(self.time_break, show_hours=True)}\n"
+		message = ft_message + bt_message
+		messagebox.showinfo("Stats", message)
+	
+
 		
 
 	def focus_timer(self):
@@ -95,6 +113,7 @@ class Sharptiming:
 		self.is_focus_ = True
 		self.is_long_ = False
 		self.is_running = False
+		self.elapsed_focus_time = 0
 
 		# Update label (timer type)
 		print("Focus timer.")
@@ -102,6 +121,7 @@ class Sharptiming:
 		self.label.update()
 
 		# Update timer label
+	
 		self.time_label.config(text=self.time_formating(self.focus_duration))
 		self.time_label.update()
 
@@ -135,17 +155,34 @@ class Sharptiming:
 		self.time_label.config(text=self.time_formating(self.long_break))
 		self.time_label.update()
 
-	def _countdown(self):
-		"""Method to handle the countdown and update the GUI"""
+	def countdown_time(self):
+		"""Method to calculate the countdown time"""
 		if self.is_focus_:
-			if self.elapsed_time > 0:
-				countdown_time = self.focus_duration - self.elapsed_time
+			if self.elapsed_focus_time > 0:
+				countdown_time = self.focus_duration - self.elapsed_focus_time
 			else:
 				countdown_time = self.focus_duration
 		else:
-			countdown_time = self.short_break if not self.is_long_ else self.long_break
+			if self.elapsed_break_time > 0:
+				if self.is_long_:
+					countdown_time = self.long_break - self.elapsed_break_time
+				else:
+					countdown_time = self.short_break - self.elapsed_break_time
+			
+			else:
+				if self.is_long_:
+					countdown_time = self.long_break
+				else:
+					countdown_time = self.short_break
+
+		return countdown_time
+
+	def _countdown(self):
+		"""Method to handle the countdown and update the GUI"""
 		
-		while countdown_time > 0 and self.is_running:
+		countdown_time = self.countdown_time()
+		
+		while countdown_time > -1 and self.is_running:
 			timer = self.time_formating(countdown_time)
 			self.time_label.config(text=timer)
 			self.time_label.update()
@@ -160,28 +197,40 @@ class Sharptiming:
 			if self.is_focus_:
 				self.label.config(text="Focus session is over!")
 				self.label.update()
+				self.elapsed_focus_time = 0
 				self.completed_cycles += 1
 				self.time_focused += self.focus_duration 	# Add focus time
+				if self.completed_cycles % self.cycles_to_long_break == 0:
+					self.long_break_timer()
+				else:
+					self.short_break_timer()
 			else:
 				self.label.config(text="Break time is over!")
 				self.label.update()
-				self.time_break += self.short_break if not self.is_long_ else self.long_break 	# Add break time short/long
+				self.elapsed_break_time = 0
+				if self.is_long_:
+					self.time_break += self.long_break
+				else:
+					self.time_break += self.short_break
+				self.focus_timer()
 		else:
 			# User stopped the timer
 			if self.is_focus_:
 				self.label.config(text="Focus session paused.")
 				self.label.update()
-				self.elapsed_time += self.focus_duration - countdown_time
+				self.elapsed_focus_time = self.focus_duration - countdown_time
 			else:
 				self.label.config(text="Break paused.")
 				self.label.update()
-			
+				if self.is_long_:
+					self.elapsed_break_time = self.long_break - countdown_time
+				else:
+					self.elapsed_break_time = self.short_break - countdown_time			
 
 
 
 # Run app
 if __name__ == "__main__":
 	root = tk.Tk()
-	tracker = TimeTracker()
 	app = Sharptiming(root)
 	root.mainloop()
