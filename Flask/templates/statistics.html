@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Statistics</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Statistics</title>
 </head>
 <body>
-    <h1>Tracked Time Statistics</h1>
+    <h1>Pomodoro Session Statistics</h1>
     <ul>
     {% for project, tasks in tracked_time.items() %}
         <li><strong>{{ project }}</strong>
@@ -16,6 +18,7 @@
         </li>
     {% endfor %}
     </ul>
-    <a href="/">Go Back</a>
+    <br>
+    <a href="/">Go Back to Pomodoro Timer</a>
 </body>
 </html>
