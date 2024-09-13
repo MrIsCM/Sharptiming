@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Statistics</title>
+</head>
+<body>
+    <h1>Tracked Time Statistics</h1>
+    <ul>
+    {% for project, tasks in tracked_time.items() %}
+        <li><strong>{{ project }}</strong>
+            <ul>
+            {% for task, time_spent in tasks.items() %}
+                <li>{{ task }}: {{ time_spent / 60 }} minutes</li>
+            {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+    </ul>
+    <a href="/">Go Back</a>
+</body>
+</html>
