@@ -37,12 +37,11 @@ class TimeTracker:
 				Flag to check if the user pressed 'q' to cancel the session.
 		"""
 		
-		self.focus_duration = int(focus_duration * 60)		# in seconds
+		self.focus_duration = int(focus_duration * 60)	# in seconds
 		self.short_break = int(short_break * 60)		# in seconds
-		self.long_break = int(long_break * 60)		# in seconds
+		self.long_break = int(long_break * 60)			# in seconds
 		self.total_cycles = total_cycles
 		self.cycles_to_long_break = cycles_to_long_break
-		self.pressed_q = pressed_q
 		self.data_file = data_file
 
 		# Some paramters to keep track
@@ -51,6 +50,7 @@ class TimeTracker:
 		self.time_break = 0
 		self.elapsed_time = 0
 
+		# Project and task names
 		self.project = project
 		self.task = task
 
@@ -59,6 +59,9 @@ class TimeTracker:
 
 		# Load the tracked time from the file
 		self.load_tracked_time()
+
+		# Flag to check if the app is running
+		self.is_running = True
 
 
 	def __repr__(self):
@@ -97,7 +100,19 @@ class TimeTracker:
 		self.save_tracked_time()
 
 	def settings(self):
-		command = input("Enter your command:\n\t- Show Current Settings (sh) \n\t- Change Settings (ch)\n\t- Start Focuss Session (fs) \n\t- Start Short Break (sb) \n\t- Start Long Break (lb) \n\t- Show Current Stats (st) \n\t Data (dt) \n\t- Exit (q) \n")
+
+		msg = "Welcome to Pomodoro Timer App!\n"
+		msg += "Here are the commands you can use:\n"
+		msg += "\t- Show Current Settings	(sh)\n"
+		msg += "\t- Change Settings	(ch)\n"
+		msg += "\t- Start Focuss Session	(fs)\n"
+		msg += "\t- Start Short Break	(sb)\n"
+		msg += "\t- Start Long Break	(lb)\n"
+		msg += "\t- Change Data File	(dt)\n"
+		msg += "\t- Show Current Stats	(st)\n"
+		msg += "\t- Exit			(q)\n"
+	
+		command = input(Fore.LIGHTYELLOW_EX + msg)
 		if command == "sh":
 			self.show_settings()
 		elif command == "ch":
@@ -290,9 +305,9 @@ class TimeTracker:
 		self.settings()
 
 	def run(self):
-		self.is_running = True
 		while self.is_running:
 			self.settings()
+		return
 
 if __name__ == "__main__":
 	tt = TimeTracker(focus_duration=0.2, short_break=0.05, long_break=0.1, total_cycles=5, cycles_to_long_break=2)
