@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Statistics</title>
+</head>
+<body>
+    <h1>Pomodoro Session Statistics</h1>
+    <ul>
+    {% for project, tasks in tracked_time.items() %}
+        <li><strong>{{ project }}</strong>
+            <ul>
+            {% for task, time_spent in tasks.items() %}
+                <li>{{ task }}: {{ time_spent / 60 }} minutes</li>
+            {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+    </ul>
+    <br>
+    <a href="/">Go Back to Pomodoro Timer</a>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer</title>
+</head>
+<body>
+    <h1>Pomodoro Timer</h1>
+    <form id="pomodoro-form">
+        <label for="project">Project:</label>
+        <input type="text" id="project" name="project" required><br><br>
+        <label for="task">Task:</label>
+        <input type="text" id="task" name="task" required><br><br>
+        <label for="duration">Duration (minutes):</label>
+        <input type="number" id="duration" name="duration" value="25" required><br><br>
+        <button type="submit">Start Pomodoro</button>
+        <button type="button" id="pause-button">Pause</button>
+        <button type="button" id="focus-button">Focus</button>
+        <button type="button" id="short_break-button">Short Break</button>
+        <button type="button" id="long_break-button">Long Break</button>
+    </form>
+
+    <h2 id="timer">Timer will appear here.</h2>
+
+    <br><br>
+    <a href="/statistics">View Pomodoro Statistics</a>
+
+    <script>
+        // Handle form submission via fetch to prevent page reload
+        document.getElementById('pomodoro-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Prepare form data
+            const formData = new FormData(e.target);
+            const duration = formData.get('duration');
+            const durationInSeconds = parseInt(duration) * 60;
+
+            // Make an asynchronous request to start the Pomodoro session
+            fetch('/start_pomodoro', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);  // Server response
+                startTimer(durationInSeconds);  // Start the timer
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        // Timer countdown function
+        function startTimer(duration) {
+            let timer = duration, minutes, seconds;
+            const display = document.getElementById('timer');
+
+            const interval = setInterval(() => {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    display.textContent = "Pomodoro Complete!";
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
