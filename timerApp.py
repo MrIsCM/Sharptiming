@@ -9,6 +9,17 @@ init(autoreset=True)
 
 class TimeTracker:
 
+	global bar_long, line_color, announce_color, focus_color, break_color, data_color, msg_color
+
+	bar_long = 30
+	line_colors = Fore.LIGHTWHITE_EX
+	announce_color = Fore.MAGENTA
+	focus_color = Fore.GREEN
+	break_color = Fore.CYAN
+	data_color = Fore.LIGHTMAGENTA_EX
+	msg_color = Fore.LIGHTYELLOW_EX
+
+
 	def __init__(self, focus_duration=25, short_break=5, long_break=15, cycles_to_long_break=4, total_cycles=4, pressed_q=False, project=None, task=None, data_file="tracked_time.json"):
 
 		"""
@@ -63,6 +74,9 @@ class TimeTracker:
 		# Flag to check if the app is running
 		self.is_running = True
 
+		# Flag to check if it's the first run
+		self.first_run = True
+
 
 	def __repr__(self):
 		return f"{self.__class__.__name__}(focus_duration={self.focus_duration}, short_break={self.short_break}, long_break={self.long_break}, total_cycles={self.total_cycles}, cycles_to_long_break={self.cycles_to_long_break})"
@@ -86,6 +100,7 @@ class TimeTracker:
 
 	def log_time(self):
 		if self.project and self.task:
+
 			# Check if the project is already in the dict
 			if self.project not in self.tracked_time:
 				self.tracked_time[self.project] = {}
@@ -101,18 +116,22 @@ class TimeTracker:
 
 	def settings(self):
 
-		msg = "Welcome to Pomodoro Timer App!\n"
-		msg += "Here are the commands you can use:\n"
+		intro = "Welcome to Pomodoro Timer App!\n"
+		msg = "Here are the commands you can use:\n"
 		msg += "\t- Show Current Settings	(sh)\n"
 		msg += "\t- Change Settings	(ch)\n"
 		msg += "\t- Start Focuss Session	(fs)\n"
 		msg += "\t- Start Short Break	(sb)\n"
 		msg += "\t- Start Long Break	(lb)\n"
-		msg += "\t- Change Data File	(dt)\n"
+		msg += "\t- Data Handling	(dt)\n"
 		msg += "\t- Show Current Stats	(st)\n"
 		msg += "\t- Exit			(q)\n"
-	
-		command = input(Fore.LIGHTYELLOW_EX + msg)
+
+		if self.first_run:
+			print(announce_color + intro)
+			self.ask_project_task()
+			self.first_run = False
+		command = input(msg_color + msg)
 		if command == "sh":
 			self.show_settings()
 		elif command == "ch":
@@ -126,22 +145,25 @@ class TimeTracker:
 		elif command == "st":
 			self.show_stats()
 		elif command == "dt":
-			pass
+			self.data_handling()
 		elif command == "q":
-			self.is_running = False
+			return
 		else:
-			print("Invalid command. Try again.")
-			self.settings()
+			return
 
 	def show_settings(self):
+		time.sleep(1)
 		print(Fore.LIGHTYELLOW_EX + "\n" + "="*40)
-		print(Fore.LIGHTYELLOW_EX + "Pomodoro settings:")
+		print(Fore.MAGENTA + "Pomodoro settings:")
 		print(Fore.LIGHTYELLOW_EX + "-"*35)
 		print(Fore.GREEN + f"Focus duration:\t\t {self.time_formating(self.focus_duration)}")
 		print(Fore.CYAN + f"Short break:\t\t {self.time_formating(self.short_break)}")
 		print(Fore.LIGHTMAGENTA_EX + f"Long break:\t\t {self.time_formating(self.long_break)}")
 		print(Fore.GREEN + f"\nCycles to long break:\t {self.cycles_to_long_break}")
 		print(Fore.LIGHTYELLOW_EX + "="*40)
+
+		# Call the settings method again
+		self.settings()
 
 	def change_settings(self):
 		command = input("Enter the setting you want to change:\n\t- Focus duration (f) \n\t- Short break (s) \n\t- Long break (l) \n\t- Cycles to long break (c) \n\t- Show Current Settings (sh) \n\t- Back (q) \n")
@@ -156,16 +178,15 @@ class TimeTracker:
 			self.cycles_to_long_break = int(input("Enter the number of cycles to long break: "))
 		elif command == "q":
 			self.settings()
-		else:
-			print("Invalid command. Try again.")
-			self.change_settings()
-
-		self.change_settings()
+		elif command == "sh":
+			self.show_settings()
+		
+		self.settings()
 
 	def show_stats(self):
 
 		print(Fore.LIGHTYELLOW_EX + "\n" + "="*40)
-		print(Fore.LIGHTYELLOW_EX + "Pomodoro session stats:")
+		print(Fore.MAGENTA + "Pomodoro session stats:")
 		print(Fore.LIGHTYELLOW_EX + "-"*35)
 		print(Fore.GREEN + f"Time focused: {self.time_formating(self.time_focused)}")
 		print(Fore.CYAN + f"Time on break: {self.time_formating(self.time_break)}")
@@ -173,7 +194,7 @@ class TimeTracker:
 		print(Fore.LIGHTYELLOW_EX + "="*40)
 
 		print(Fore.LIGHTYELLOW_EX + "\n" + "="*40)
-		print(Fore.LIGHTYELLOW_EX + "Time per project and task:")
+		print(Fore.MAGENTA + "Time per project and task:")
 		print(Fore.LIGHTYELLOW_EX + "-"*35)
 		for project, tasks in self.tracked_time.items():
 			print(Fore.BLUE + f"Project: {project}")
@@ -182,11 +203,15 @@ class TimeTracker:
 				print(Fore.LIGHTMAGENTA_EX + f"\t-{task} : {task_time}")
 		print(Fore.LIGHTYELLOW_EX + "="*40)
 
+		# Call the settings method again
+		self.settings()
+
 	def start_focus_session(self):
 		focus_time = self.time_formating(self.focus_duration)
-		print(Fore.LIGHTYELLOW_EX + f"Starting focus session #{self.completed_cycles+1}. Time: {focus_time}")
+		print(Fore.MAGENTA + f"Starting focus session #{self.completed_cycles+1}. Time: {focus_time}")
 		self._countdown(self.focus_duration)
 		self.completed_cycles += 1
+		self.continue_session(focus=False)
 
 	def start_break(self, is_long=False):
 
@@ -194,10 +219,12 @@ class TimeTracker:
 			break_time = self.time_formating(self.long_break)
 			print(Fore.CYAN + f"Starting long break. Time: {break_time}")
 			self._break_countdown(self.long_break, is_long=True)
+			self.continue_session(focus=True)
 		else:
 			break_time = self.time_formating(self.short_break)
 			print(Fore.CYAN + f"Starting short break. Time: {break_time}")
 			self._break_countdown(self.short_break)
+			self.continue_session(focus=True)
 
 	def _countdown(self, time_seconds):
 		total_time = time_seconds
@@ -238,7 +265,6 @@ class TimeTracker:
 			self.time_focused += self.focus_duration
 			print(Fore.GREEN + "Time's up!")
 		pressed_q = False
-		self.continue_session(focus=False)
 
 	def _break_countdown(self, time_seconds, is_long=False):
 		total_time = time_seconds
@@ -281,8 +307,16 @@ class TimeTracker:
 	
 			print(Fore.CYAN + "Time's up! Get back to work.")
 		pressed_q = False
-		self.continue_session(focus=True)
 
+	def data_handling(self):
+		pass
+
+	def play_sound(self):
+		pass
+
+	def ask_project_task(self):
+		self.project = input("Enter the project name: ")
+		self.task = input("Enter the task name: ")
 
 	def continue_session(self, focus):
 		is_long = self.completed_cycles % self.cycles_to_long_break == 0
@@ -290,8 +324,6 @@ class TimeTracker:
 			control = input("Do you want to continue with the focus session? (y/n): ")
 			if control == "y":
 				self.start_focus_session()
-			else:
-				self.settings()
 		else:
 			if is_long:
 				control = input("Do you want to continue with the long break? (y/n): ")
@@ -301,13 +333,12 @@ class TimeTracker:
 				control = input("Do you want to continue with the short break? (y/n): ")
 				if control == "y":
 					self.start_break(is_long=False)
-		# Not needed
+
+		# If 'n' --> go back to settings
 		self.settings()
 
 	def run(self):
-		while self.is_running:
-			self.settings()
-		return
+		self.settings()
 
 if __name__ == "__main__":
 	tt = TimeTracker(focus_duration=0.2, short_break=0.05, long_break=0.1, total_cycles=5, cycles_to_long_break=2)
