@@ -112,6 +112,9 @@ class TimeTracker:
 
 		# Update the time spent on the task
 		self.tracked_time[self.project][self.task] += self.elapsed_time
+		
+		# Reset the elapsed time
+		self.elapsed_time = 0
 
 		# Save the tracked time to the file
 		self.save_tracked_time()
@@ -249,6 +252,7 @@ class TimeTracker:
 		print(Fore.MAGENTA + f"Starting focus session #{self.completed_cycles+1}. Time: {focus_time}")
 		self._countdown(self.focus_duration)
 		self.completed_cycles += 1
+		self.log_time()
 		self.continue_session(focus=False)
 
 	def start_break(self, is_long=False):
@@ -297,7 +301,6 @@ class TimeTracker:
 				
 			if pressed_q:
 				self.time_focused += self.focus_duration - time_seconds
-				self.elapsed_time = time_seconds
 				self.completed_cycles -= 1
 				print(Fore.RED + "\nSession cancelled.")
 				break
@@ -308,6 +311,9 @@ class TimeTracker:
 
 		# Reset the flag
 		pressed_q = False
+
+		# Keep track of elapsed time
+		self.elapsed_time = time_seconds
 
 		# Play the alarm sound
 		self.play_sound()
