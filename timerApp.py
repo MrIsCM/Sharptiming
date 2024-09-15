@@ -20,7 +20,7 @@ class TimeTracker:
 	msg_color = Fore.LIGHTYELLOW_EX
 
 
-	def __init__(self, focus_duration=25, short_break=5, long_break=15, cycles_to_long_break=4, total_cycles=4, pressed_q=False, project=None, task=None, data_file="tracked_time.json"):
+	def __init__(self, focus_duration=25, short_break=5, long_break=15, cycles_to_long_break=4, total_cycles=4, pressed_q=False, project=None, task=None, data_file="tracked_time.json", sound_file="sound.mp3"):
 
 		"""
 			Attributes:
@@ -53,7 +53,9 @@ class TimeTracker:
 		self.long_break = int(long_break * 60)			# in seconds
 		self.total_cycles = total_cycles
 		self.cycles_to_long_break = cycles_to_long_break
+
 		self.data_file = data_file
+		self.sound_file = sound_file
 
 		# Some paramters to keep track
 		self.completed_cycles = 0
@@ -148,8 +150,7 @@ class TimeTracker:
 			self.data_handling()
 		elif command == "q":
 			return
-		else:
-			return
+		return
 
 	def show_settings(self):
 		time.sleep(1)
