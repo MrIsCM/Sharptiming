@@ -77,7 +77,6 @@ class Sharptiming:
 		self.stats_button = tk.Button(root, text="Stats", command=self.show_stats)
 		self.stats_button.pack(side=tk.LEFT, padx=40)
 
-
 	def time_formating(self, time_seconds, show_hours=False):
 		mins, secs = divmod(time_seconds, 60)
 		if show_hours:
@@ -94,7 +93,6 @@ class Sharptiming:
 		self.is_running = False
 		print("Timer stopped.")
 
-
 	def show_stats(self):
 		self.is_running = False
 		self.time_focused += self.elapsed_focus_time
@@ -103,10 +101,7 @@ class Sharptiming:
 		ft_message = f"Time focused: {self.time_formating(self.time_focused, show_hours=True)}\n"
 		bt_message = f"Time on break: {self.time_formating(self.time_break, show_hours=True)}\n"
 		message = ft_message + bt_message
-		messagebox.showinfo("Stats", message)
-	
-
-		
+		messagebox.showinfo("Stats", message)	
 
 	def focus_timer(self):
 		# Control variables
