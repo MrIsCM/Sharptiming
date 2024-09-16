@@ -83,12 +83,15 @@ class TimeTracker:
 	def __repr__(self):
 		return f"{self.__class__.__name__}(focus_duration={self.focus_duration}, short_break={self.short_break}, long_break={self.long_break}, total_cycles={self.total_cycles}, cycles_to_long_break={self.cycles_to_long_break})"
 
-	def time_formating(self, time_seconds):
+	def __str__(self):
+		return f"Pomodoro Timer App with focus duration of {self.focus_duration} seconds."
+
+	def _time_formating(self, time_seconds):
 		mins, secs = divmod(time_seconds, 60)
 		hours, mins = divmod(mins, 60)
 		return f"{hours:02d}:{mins:02d}:{secs:02d}"
 	
-	def save_tracked_time(self):
+	def _save_tracked_time(self):
 		data_file = Path(self.data_file)
 		data_file.touch(exist_ok=True)
 		with open(data_file, "w") as file:
@@ -100,7 +103,7 @@ class TimeTracker:
 			with open(data_file, "r") as file:
 				self.tracked_time = json.load(file)
 
-	def log_time(self):
+	def _log_time(self):
 		if self.project and self.task:
 
 			# Check if the project is already in the dict
@@ -117,7 +120,7 @@ class TimeTracker:
 		self.elapsed_time = 0
 
 		# Save the tracked time to the file
-		self.save_tracked_time()
+		self._save_tracked_time()
 
 	def settings(self):
 
@@ -169,9 +172,9 @@ class TimeTracker:
 		print(Fore.LIGHTYELLOW_EX + "\n" + "="*40)
 		print(Fore.MAGENTA + "Pomodoro settings:")
 		print(Fore.LIGHTYELLOW_EX + "-"*35)
-		print(Fore.GREEN + f"Focus duration:\t\t {self.time_formating(self.focus_duration)}")
-		print(Fore.CYAN + f"Short break:\t\t {self.time_formating(self.short_break)}")
-		print(Fore.LIGHTMAGENTA_EX + f"Long break:\t\t {self.time_formating(self.long_break)}")
+		print(Fore.GREEN + f"Focus duration:\t\t {self._time_formating(self.focus_duration)}")
+		print(Fore.CYAN + f"Short break:\t\t {self._time_formating(self.short_break)}")
+		print(Fore.LIGHTMAGENTA_EX + f"Long break:\t\t {self._time_formating(self.long_break)}")
 		print(Fore.GREEN + f"\nCycles to long break:\t {self.cycles_to_long_break}")
 		print(Fore.LIGHTYELLOW_EX + "="*40)
 
@@ -217,8 +220,8 @@ class TimeTracker:
 		print(Fore.LIGHTYELLOW_EX + "\n" + "="*40)
 		print(Fore.MAGENTA + "Pomodoro session stats:")
 		print(Fore.LIGHTYELLOW_EX + "-"*35)
-		print(Fore.GREEN + f"Time focused: {self.time_formating(self.time_focused)}")
-		print(Fore.CYAN + f"Time on break: {self.time_formating(self.time_break)}")
+		print(Fore.GREEN + f"Time focused: {self._time_formating(self.time_focused)}")
+		print(Fore.CYAN + f"Time on break: {self._time_formating(self.time_break)}")
 		print(Fore.LIGHTMAGENTA_EX + f"Completed cycles: {self.completed_cycles}")
 		print(Fore.LIGHTYELLOW_EX + "="*40)
 
@@ -228,7 +231,7 @@ class TimeTracker:
 		for project, tasks in self.tracked_time.items():
 			print(Fore.BLUE + f"Project: {project}")
 			for task, time_spent in tasks.items():
-				task_time = self.time_formating(time_spent)
+				task_time = self._time_formating(time_spent)
 				print(Fore.LIGHTMAGENTA_EX + f"\t-{task} : {task_time}")
 		print(Fore.LIGHTYELLOW_EX + "="*40)
 
@@ -239,8 +242,8 @@ class TimeTracker:
 		print(Fore.LIGHTYELLOW_EX + "\n" + "="*40)
 		print(Fore.MAGENTA + "Current session stats:")
 		print(Fore.LIGHTYELLOW_EX + "-"*35)
-		print(Fore.GREEN + f"Time focused: {self.time_formating(self.time_focused)}")
-		print(Fore.CYAN + f"Time on break: {self.time_formating(self.time_break)}")
+		print(Fore.GREEN + f"Time focused: {self._time_formating(self.time_focused)}")
+		print(Fore.CYAN + f"Time on break: {self._time_formating(self.time_break)}")
 		print(Fore.LIGHTMAGENTA_EX + f"Completed cycles: {self.completed_cycles}")
 		print(Fore.LIGHTYELLOW_EX + "="*40)
 
@@ -248,25 +251,25 @@ class TimeTracker:
 		self.settings()
 
 	def start_focus_session(self):
-		focus_time = self.time_formating(self.focus_duration)
+		focus_time = self._time_formating(self.focus_duration)
 		print(Fore.MAGENTA + f"Starting focus session #{self.completed_cycles+1}. Time: {focus_time}")
 		self._countdown(self.focus_duration)
 		self.completed_cycles += 1
-		self.log_time()
-		self.continue_session(focus=False)
+		self._log_time()
+		self._continue_session(focus=False)
 
 	def start_break(self, is_long=False):
 
 		if is_long:
-			break_time = self.time_formating(self.long_break)
+			break_time = self._time_formating(self.long_break)
 			print(Fore.CYAN + f"Starting long break. Time: {break_time}")
 			self._break_countdown(self.long_break, is_long=True)
-			self.continue_session(focus=True)
+			self._continue_session(focus=True)
 		else:
-			break_time = self.time_formating(self.short_break)
+			break_time = self._time_formating(self.short_break)
 			print(Fore.CYAN + f"Starting short break. Time: {break_time}")
 			self._break_countdown(self.short_break)
-			self.continue_session(focus=True)
+			self._continue_session(focus=True)
 
 	def _countdown(self, time_seconds):
 		total_time = time_seconds
@@ -279,7 +282,7 @@ class TimeTracker:
 			print(Fore.LIGHTGREEN_EX + bar, end=" ")
 
 			# Timer
-			timer = self.time_formating(time_seconds)
+			timer = self._time_formating(time_seconds)
 			print(Fore.GREEN + "\t" + timer, end="\r")
 
 			time_seconds -= 1
@@ -316,7 +319,7 @@ class TimeTracker:
 		self.elapsed_time = time_seconds
 
 		# Play the alarm sound
-		self.play_sound()
+		self._play_sound()
 
 	def _break_countdown(self, time_seconds, is_long=False):
 		total_time = time_seconds
@@ -328,7 +331,7 @@ class TimeTracker:
 			print(Fore.LIGHTCYAN_EX + bar, end=" ")
 
 			# Timer
-			timer = self.time_formating(time_seconds)
+			timer = self._time_formating(time_seconds)
 			print(Fore.CYAN + "\t" + timer, end="\r")
 
 			time_seconds -= 1
@@ -367,19 +370,19 @@ class TimeTracker:
 		pressed_q = False
 
 		# Play the alarm sound
-		self.play_sound()
+		self._play_sound()
 
 	def data_handling(self):
 		pass
 
-	def play_sound(self):
+	def _play_sound(self):
 		playsound(self.sound_file)
 
 	def ask_project_task(self):
 		self.project = input("Enter the project name: ")
 		self.task = input("Enter the task name: ")
 
-	def continue_session(self, focus):
+	def _continue_session(self, focus):
 		is_long = self.completed_cycles % self.cycles_to_long_break == 0
 		if focus:
 			control = input("Do you want to continue with the focus session? (y/n): ")
