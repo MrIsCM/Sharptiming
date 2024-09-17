@@ -63,6 +63,7 @@ class TimeTracker:
 		self.time_focused = 0
 		self.time_break = 0
 		self.elapsed_time = 0
+		self.focused_time_since_last_log = 0
 
 		# Project and task names
 		self.project = project
@@ -103,7 +104,7 @@ class TimeTracker:
 			with open(data_file, "r") as file:
 				self.tracked_time = json.load(file)
 
-	def _log_time(self):
+	def log_time(self):
 		if self.project and self.task:
 
 			# Check if the project is already in the dict
@@ -114,13 +115,14 @@ class TimeTracker:
 				self.tracked_time[self.project][self.task] = 0
 
 		# Update the time spent on the task
-		self.tracked_time[self.project][self.task] += self.elapsed_time
+		self.tracked_time[self.project][self.task] += self.time_focused
 		
 		# Reset the elapsed time
 		self.elapsed_time = 0
 
 		# Save the tracked time to the file
 		self._save_tracked_time()
+		self.settings()
 
 	def settings(self):
 
@@ -135,9 +137,9 @@ class TimeTracker:
 		msg += "\t- Start Focuss Session		(fs)\n"
 		msg += "\t- Start Short Break		(sb)\n"
 		msg += "\t- Start Long Break		(lb)\n"
-		msg += "\t- Data Handling			(dt)\n"
 		msg += "\t- Show Stats			(st)\n"
 		msg += "\t- Show Session Stats		(se)\n"
+		msg += "\t- Log Session Stats		(log)\n"
 		msg += "\t- Exit				(q)\n"
 		msg += "-"*40 + "\n"
 
@@ -147,21 +149,22 @@ class TimeTracker:
 			print(announce_color + "="*40)
 			self.ask_project_task()
 			self.first_run = False
-		command = input(msg_color + msg)
+	
+		command = input(msg_color + msg).lower()	
 		if command == "sh":
 			self.show_settings()
 		elif command == "ch":
 			self.change_settings()
 		elif command == "fs":
-			self.start_focus_session()
+			self._start_focus_session()
 		elif command == "sb":
-			self.start_break()
+			self._start_break()
 		elif command == "lb":
-			self.start_break(is_long=True)
+			self._start_break(is_long=True)
 		elif command == "st":
 			self.show_stats()
-		elif command == "dt":
-			self.data_handling()
+		elif command == "log":
+			self.log_time()
 		elif command == "q":
 			self.is_running = False
 			return
@@ -250,15 +253,15 @@ class TimeTracker:
 		# Call the settings method again
 		self.settings()
 
-	def start_focus_session(self):
+	def _start_focus_session(self):
 		focus_time = self._time_formating(self.focus_duration)
 		print(Fore.MAGENTA + f"Starting focus session #{self.completed_cycles+1}. Time: {focus_time}")
 		self._countdown(self.focus_duration)
 		self.completed_cycles += 1
-		self._log_time()
+		self.log_time()
 		self._continue_session(focus=False)
 
-	def start_break(self, is_long=False):
+	def _start_break(self, is_long=False):
 
 		if is_long:
 			break_time = self._time_formating(self.long_break)
@@ -303,8 +306,10 @@ class TimeTracker:
 				pressed_p = False
 				
 			if pressed_q:
-				self.time_focused += self.focus_duration - time_seconds
+				# self.time_focused += self.focus_duration - time_seconds
 				self.completed_cycles -= 1
+				# Keep track of elapsed time
+				self.elapsed_time = time_seconds
 				print(Fore.RED + "\nSession cancelled.")
 				break
 
@@ -315,8 +320,11 @@ class TimeTracker:
 		# Reset the flag
 		pressed_q = False
 
-		# Keep track of elapsed time
-		self.elapsed_time = time_seconds
+		if pressed_q and time_seconds >= 0:
+			self.time_focused += self.focus_duration - time_seconds
+		else:
+			# Save the focused time since the last log
+			self.time_focused += self.focus_duration
 
 		# Play the alarm sound
 		self._play_sound()
@@ -387,22 +395,25 @@ class TimeTracker:
 		if focus:
 			control = input("Do you want to continue with the focus session? (y/n): ")
 			if control == "y":
-				self.start_focus_session()
+				self._start_focus_session()
 		else:
 			if is_long:
 				control = input("Do you want to continue with the long break? (y/n): ")
 				if control == "y":
-					self.start_break(is_long=True)
+					self._start_break(is_long=True)
 			else:
 				control = input("Do you want to continue with the short break? (y/n): ")
 				if control == "y":
-					self.start_break(is_long=False)
+					self._start_break(is_long=False)
 
 		# If 'n' --> go back to settings
 		self.settings()
 
 	def run(self):
 		self.settings()
+		print(Fore.RED + 'Saving the tracked time...')
+		self.log_time()
+		print(Fore.RED + "Exiting the app. Goodbye!")
 
 if __name__ == "__main__":
 	tt = TimeTracker(focus_duration=0.2, short_break=0.05, long_break=0.1, total_cycles=5, cycles_to_long_break=2)
