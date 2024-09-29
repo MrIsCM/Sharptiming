@@ -119,6 +119,7 @@ class TimeTracker:
 			if self.task not in self.tracked_time[self.project]:
 				self.tracked_time[self.project][self.task] = 0
 
+
 		# Update the time spent on the task
 		self.tracked_time[self.project][self.task] += self.elapsed_time
 		
