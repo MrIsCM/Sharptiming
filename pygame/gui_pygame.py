@@ -62,14 +62,29 @@ class TimeTrackerGUI:
 					pygame.quit()
 					return False
 		return True
+	
+	def button(self, x, y, w, h, ic, ac, text=None, action=None):
+		"""Create a button."""
+		mouse = pygame.mouse.get_pos()
+		click = pygame.mouse.get_pressed()
+		if x+w > mouse[0] > x and y+h > mouse[1] > y:
+			pygame.draw.rect(self.screen, ac, (x, y, w, h))
+			if click[0] == 1 and action != None:
+				action()
+		else:
+			pygame.draw.rect(self.screen, ic, (x, y, w, h))
+
+		if text:
+			self._render_text(text, (x + 10, y + 10))
+		
 
 	def run(self):
 		"""Main loop for running the GUI."""
 		running = True
 		while running:
+
 			running = self.handle_events()  # Handle events
 			
-				
 				
 			# self.timer.update()  # Update the timer
 
@@ -79,9 +94,12 @@ class TimeTrackerGUI:
 				text = "Paused!"
 				self._render_text(text, (self.width // 2 - 11*len(text), self.height // 2 - 100))
 			
+			self.button(x=100, y=50, w=100, h=50, ic=(130, 255, 0), ac=(0, 200, 200),
+			   text='test', action=self.timer.start_focus)
 
 			pygame.display.flip()  # Update the display
 			self.clock.tick(self.fps)  # Control the frame rate
+			
 
 if __name__ == "__main__":
 	gui = TimeTrackerGUI()
