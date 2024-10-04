@@ -11,12 +11,19 @@ class TimeTrackerGUI:
 
 		# Set up the display
 		self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)	
-		pygame.display.set_caption("Time Tracker")
+		pygame.display.set_caption("Sharp Timings")
 
 		# Colors and Font
-		self.bg_color = (30, 30, 30)  # Background color
-		self.text_color = (255, 255, 255)  # Text color
-		self.font = pygame.font.SysFont(None, 55)
+		self.pastel_blue = (174, 198, 207)
+		self.pastel_red = (255, 105, 97)
+		self.pastel_green = (119, 221, 119)
+		self.pastel_yellow = (253, 253, 150)
+		self.pastel_grey = (207, 207, 196)
+
+		self.bg_color = self.pastel_blue  # Background color
+		self.text_color = self.pastel_grey  # Text color
+		self.font_name = 'Arial'
+		self.font = pygame.font.SysFont(self.font_name, 30)
 
 		# To control the loop
 		self.clock = pygame.time.Clock()
@@ -70,13 +77,24 @@ class TimeTrackerGUI:
 		click = pygame.mouse.get_pressed()
 		if x+w > mouse[0] > x and y+h > mouse[1] > y:
 			pygame.draw.rect(self.screen, active_color, (x, y, w, h))
-			self._render_text_center(text, (x + w//2, y + h//2), color=(0, 0, 0))
+			self._render_text_center(text, (x + w//2, y + h//2), color=(50, 20, 20))
 			if click[0] == 1 and action != None:
 				action(**kwargs)
 		else:
 			pygame.draw.rect(self.screen, inactive_color, (x, y, w, h))
 			self._render_text_center(text, (x + w//2, y + h//2), color=(255, 255, 255))
 		
+	def countdown(self):
+		"""Countdown timer."""
+		if not self.paused:
+			self.counter -= 1
+		if self.counter >= 0:
+			self.timer_text = self.timer._time_formating(self.counter)
+		else:
+			self.timer_text = "Time's up!"
+
+		screen_size = self.screen.get_size()
+		self._render_text_center(self.timer_text, (screen_size[0] // 2, screen_size[1] // 2))
 
 	def run(self):
 		"""Main loop for running the GUI."""
@@ -84,15 +102,9 @@ class TimeTrackerGUI:
 		while running:
 
 			running = self.handle_events()  # Handle events
-			
-				
-			# self.timer.update()  # Update the timer
 
 			self.screen.fill(self.bg_color)  # Fill the screen
-			self._render_text_center(self.timer_text, (self.width // 2 - 50, self.height // 2 - 50))
-			if self.paused:
-				text = "Paused!"
-				self._render_text(text, (self.width // 2 - 11*len(text), self.height // 2 - 100))
+			self.countdown()  # Display the countdown timer
 			
 			self.button(x=100, y=50, w=100, h=50, inactive_color=(130, 255, 0), active_color=(0, 200, 200),
 			   text='test', action=self.timer.start_focus)
