@@ -29,10 +29,11 @@ class TimeTrackerGUI:
 		self.counter = self.timer.focus_time
 		pygame.time.set_timer(pygame.USEREVENT, 1000)
 
-	def _render_text(self, text, pos):
+	def _render_text_center(self, text, rect, color=(255, 255, 255)):
 		"""Helper method to render text on the screen."""
-		rendered_text = self.font.render(text, True, self.text_color)
-		self.screen.blit(rendered_text, pos)
+		text_surface = self.font.render(text, True, color)
+		text_rect = text_surface.get_rect(center=rect)
+		self.screen.blit(text_surface, text_rect)
 
 	def handle_events(self):
 		"""Handle button events like starting or stopping the timer."""
@@ -63,19 +64,18 @@ class TimeTrackerGUI:
 					return False
 		return True
 	
-	def button(self, x, y, w, h, ic, ac, text=None, action=None):
+	def button(self, x, y, w, h, inactive_color, active_color, text=None, action=None, **kwargs):
 		"""Create a button."""
 		mouse = pygame.mouse.get_pos()
 		click = pygame.mouse.get_pressed()
 		if x+w > mouse[0] > x and y+h > mouse[1] > y:
-			pygame.draw.rect(self.screen, ac, (x, y, w, h))
+			pygame.draw.rect(self.screen, active_color, (x, y, w, h))
+			self._render_text_center(text, (x + w//2, y + h//2), color=(0, 0, 0))
 			if click[0] == 1 and action != None:
-				action()
+				action(**kwargs)
 		else:
-			pygame.draw.rect(self.screen, ic, (x, y, w, h))
-
-		if text:
-			self._render_text(text, (x + 10, y + 10))
+			pygame.draw.rect(self.screen, inactive_color, (x, y, w, h))
+			self._render_text_center(text, (x + w//2, y + h//2), color=(255, 255, 255))
 		
 
 	def run(self):
@@ -89,12 +89,12 @@ class TimeTrackerGUI:
 			# self.timer.update()  # Update the timer
 
 			self.screen.fill(self.bg_color)  # Fill the screen
-			self._render_text(self.timer_text, (self.width // 2 - 50, self.height // 2 - 50))
+			self._render_text_center(self.timer_text, (self.width // 2 - 50, self.height // 2 - 50))
 			if self.paused:
 				text = "Paused!"
 				self._render_text(text, (self.width // 2 - 11*len(text), self.height // 2 - 100))
 			
-			self.button(x=100, y=50, w=100, h=50, ic=(130, 255, 0), ac=(0, 200, 200),
+			self.button(x=100, y=50, w=100, h=50, inactive_color=(130, 255, 0), active_color=(0, 200, 200),
 			   text='test', action=self.timer.start_focus)
 
 			pygame.display.flip()  # Update the display
